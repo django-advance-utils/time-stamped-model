@@ -4,6 +4,7 @@ from django.db.models import DateTimeField
 __author__ = 'Tom'
 
 
+
 class CreationDateTimeField(DateTimeField):
     """
     CreationDateTimeField
@@ -14,7 +15,7 @@ class CreationDateTimeField(DateTimeField):
         kwargs.setdefault('editable', False)
         kwargs.setdefault('blank', False)
         kwargs.setdefault('auto_now_add', True)
-        super().__init__(*args, **kwargs)
+        DateTimeField.__init__(self, *args, **kwargs)
 
     def get_internal_type(self):
         return "DateTimeField"
@@ -46,7 +47,7 @@ class ModificationDateTimeField(CreationDateTimeField):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('auto_now', True)
-        super().__init__(*args, **kwargs)
+        DateTimeField.__init__(self, *args, **kwargs)
 
     def get_internal_type(self):
         return "DateTimeField"

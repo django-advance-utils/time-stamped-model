@@ -1,11 +1,11 @@
 import setuptools
 
-with open("readme.md", "r") as fh:
+with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="time-stamped-model",
-    version="0.0.5",
+    version="0.0.6",
     author="Tom Turner",
     description="Django app to add created and modified",
     long_description=long_description,

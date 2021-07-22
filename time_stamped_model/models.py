@@ -4,7 +4,6 @@ from django.db.models import DateTimeField
 __author__ = 'Tom'
 
 
-
 class CreationDateTimeField(DateTimeField):
     """
     CreationDateTimeField

@@ -1,0 +1,2 @@
+recursive-include time_stamped_model *
+recursive-exclude time_stamped_model *.pyc

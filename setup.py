@@ -5,9 +5,9 @@ with open("readme.md", "r") as fh:
 
 setuptools.setup(
     name="time-stamped-model",
-    version="0.0.2",
+    version="0.0.4",
     author="Tom Turner",
-    description="Django app to render menus and load tabs with Ajax",
+    description="Django app to add created and modified",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/django-advance-utils/time-stamped-model",

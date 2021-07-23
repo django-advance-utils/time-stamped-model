@@ -1,5 +1,4 @@
-from django.contrib.gis.db import models
-from django.db.models import DateTimeField
+from django.db.models import DateTimeField, Model
 
 __author__ = 'Tom'
 
@@ -65,7 +64,7 @@ class ModificationDateTimeField(CreationDateTimeField):
         return super().pre_save(model_instance, add)
 
 
-class TimeStampedModel(models.Model):
+class TimeStampedModel(Model):
     """
     An abstract base class model that
     provides self-updating 'created'

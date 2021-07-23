@@ -72,11 +72,6 @@ class TimeStampedModel(models.Model):
     and 'modified fields'.
     """
 
-    def __init__(self):
-        self.update_created = False
-        self.update_modified = False
-        super().__init__()
-
     created = CreationDateTimeField()
     modified = ModificationDateTimeField()
 
@@ -87,6 +82,7 @@ class TimeStampedModel(models.Model):
         """
         Using this method allows one to set the created date manually. This is useful when importing data.
         """
+        # noinspection PyAttributeOutsideInit
         self.update_created = False
         self.created = created_date
 
@@ -94,5 +90,6 @@ class TimeStampedModel(models.Model):
         """
         Using this method allows one to set the modified date manually. This is useful when importing data.
         """
+        # noinspection PyAttributeOutsideInit
         self.update_modified = False
         self.modified = modified_date

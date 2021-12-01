@@ -1,4 +1,7 @@
+import uuid
+
 from django.db.models import DateTimeField, Model
+from django.utils.text import slugify
 
 __author__ = 'Tom'
 
@@ -92,3 +95,56 @@ class TimeStampedModel(Model):
         # noinspection PyAttributeOutsideInit
         self.update_modified = False
         self.modified = modified_date
+
+    def make_new_slug(self, obj=None, name=None, on_edit=False, allow_dashes=True, extra_filters=None):
+        """
+        This allow you to populate a slug field. You need to call this function from model save. Only works if you add
+        slug = models.SlugField(unique=True)
+        on the model
+
+        the add
+        def save(self, *args, **kwargs):
+            self.make_new_slug()
+            super().save(*args, **kwargs)
+
+        :param obj: The class name can be none and it will sort it self out
+        :param name: The field to make the slug from
+        :param on_edit
+        :param allow_dashes:
+        :param extra_filters:   this allow for unique together
+        """
+        if obj is None:
+            obj = self.__class__
+
+        if extra_filters is None:
+            extra_filters = {}
+
+        if name is None:
+            # noinspection PyUnresolvedReferences
+            name = self.name
+
+        if not self.pk and (self.slug is None or self.slug == ''):
+            main_slug = slugify(name)[:45]  # limits the slug to 45 chars as slug use 50
+
+            if main_slug == '':
+                main_slug = str(uuid.uuid4())
+            if not allow_dashes:
+                main_slug = main_slug.replace('-', '_')
+            slug = main_slug
+            count = 1
+            while obj.objects.filter(slug=slug, **extra_filters).exists():
+                slug = slugify("%s %d" % (main_slug, count))
+                if not allow_dashes:
+                    slug = slug.replace('-', '_')
+                count += 1
+            self.slug = slug
+        elif self.pk and on_edit:
+            main_slug = slugify(name)[:45]  # limits the slug to 45 chars as slug use 50
+            slug = main_slug
+            count = 1
+            while obj.objects.filter(slug=slug, **extra_filters).exclude(pk=self.pk).exists():
+                slug = slugify("%s %d" % (main_slug, count))
+                if not allow_dashes:
+                    slug = slug.replace('-', '_')
+                count += 1
+            self.slug = slug

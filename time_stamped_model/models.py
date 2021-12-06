@@ -1,6 +1,6 @@
 import uuid
 
-from django.db.models import DateTimeField, Model
+from django.db.models import DateTimeField, Model, Max
 from django.utils.text import slugify
 
 __author__ = 'Tom'
@@ -148,3 +148,16 @@ class TimeStampedModel(Model):
                     slug = slug.replace('-', '_')
                 count += 1
             self.slug = slug
+
+    def set_order_field(self, obj=None, extra_filters=None):
+        if obj is None:
+            obj = self.__class__
+        # noinspection PyUnresolvedReferences
+        if self.order is None:
+            if extra_filters is None:
+                extra_filters = {}
+            order = obj.objects.filter(**extra_filters).aggregate(Max('order'))['order__max']
+            if order is None:
+                self.order = 1
+            else:
+                self.order = order + 1

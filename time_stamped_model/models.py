@@ -140,6 +140,8 @@ class TimeStampedModel(Model):
             self.slug = slug
         elif self.pk and on_edit:
             main_slug = slugify(name)[:45]  # limits the slug to 45 chars as slug use 50
+            if not allow_dashes:
+                main_slug = main_slug.replace('-', '_')
             slug = main_slug
             count = 1
             while obj.objects.filter(slug=slug, **extra_filters).exclude(pk=self.pk).exists():

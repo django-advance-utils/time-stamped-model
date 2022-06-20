@@ -151,15 +151,16 @@ class TimeStampedModel(Model):
                 count += 1
             self.slug = slug
 
-    def set_order_field(self, obj=None, extra_filters=None):
+    def set_order_field(self, obj=None, extra_filters=None, order_field='order'):
         if obj is None:
             obj = self.__class__
-        # noinspection PyUnresolvedReferences
-        if self.order is None:
+        order = getattr(self, order_field)
+        if order is None:
             if extra_filters is None:
                 extra_filters = {}
-            order = obj.objects.filter(**extra_filters).aggregate(Max('order'))['order__max']
+            order = obj.objects.filter(**extra_filters).aggregate(Max(order_field))[f'{order_field}__max']
             if order is None:
-                self.order = 1
+                order = 1
             else:
-                self.order = order + 1
+                order += 1
+            setattr(self, order_field, order)

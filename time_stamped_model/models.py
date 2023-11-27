@@ -207,3 +207,37 @@ class TimeStampedModel(Model):
             else:
                 order += 1
             setattr(self, order_field, order)
+
+    def set_instance_type(self, instance_type_field='instance_type'):
+        """
+        Sets the type of an instance for a Django model.
+
+        This method automatically assigns a value to a field in the model that indicates the type of the instance.
+        It is especially useful in inheritance scenarios, where a base model is extended by several child models and
+        there's a need to identify the type of each instance.
+
+        Parameters:
+        - instance_type_field (str): The field name in the model that will store the instance type.
+          Defaults to 'instance_type'.
+
+        Usage:
+        - Implement this method in the model's save method to automatically set the instance
+          type before the instance is saved:
+
+          def save(self, *args, **kwargs):
+              self.set_instance_type()
+              super().save(*args, **kwargs)
+
+        The method first tries to set the 'instance_type_field' with its current value. If this field is None,
+        it derives the model's class name from the '_meta.label_lower' attribute, formatted as 'app_label.model_name',
+        and uses the model name part as the instance type. This approach is particularly helpful in models using
+        abstract base classes or Django's multi-table inheritance.
+
+        Example:
+        - In a case where there is an abstract model 'Animal' and a subclass 'Dog',
+          calling 'self.set_instance_type()' in Dog's save method would set 'instance_type' to 'dog'.
+        """
+        instance_type = setattr(self, instance_type_field)
+        if instance_type is None:
+            instance_type = self._meta.label_lower.split('.')[1]
+            setattr(self, instance_type_field, instance_type)

@@ -237,7 +237,7 @@ class TimeStampedModel(Model):
         - In a case where there is an abstract model 'Animal' and a subclass 'Dog',
           calling 'self.set_instance_type()' in Dog's save method would set 'instance_type' to 'dog'.
         """
-        instance_type = setattr(self, instance_type_field)
+        instance_type = getattr(self, instance_type_field)
         if instance_type is None:
             instance_type = self._meta.label_lower.split('.')[1]
             setattr(self, instance_type_field, instance_type)

@@ -169,6 +169,32 @@ class TimeStampedModel(Model):
             self.slug = slug
 
     def set_order_field(self, obj=None, extra_filters=None, order_field='order'):
+        """
+        Sets the order for a model instance based on the specified ordering field.
+
+        Parameters:
+        - obj (Model, optional): The model class to which the order field applies.
+          Defaults to the class of the current instance.
+        - extra_filters (dict, optional): Additional filters to apply when determining the order.
+          Useful for nested or related models.
+        - order_field (str): The field used to determine the order. Default is 'order'.
+
+        Usage:
+        - Add an 'order' field to your model: order = models.PositiveSmallIntegerField().
+        - Override the save method and include set_order_field:
+
+          def save(self, *args, **kwargs):
+              self.set_order_field()
+              super().save(*args, **kwargs)
+
+        - For subqueries or related models, use extra_filters:
+
+          self.set_order_field(extra_filters={'base': self.base})
+
+        This method calculates the next available order number by finding the maximum value of the order
+        field and incrementing it. If no records are found, it starts from 1.
+        """
+
         if obj is None:
             obj = self.__class__
         order = getattr(self, order_field)

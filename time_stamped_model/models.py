@@ -97,7 +97,7 @@ class TimeStampedModel(Model):
         self.modified = modified_date
 
     def make_new_slug(self, obj=None, name=None, on_edit=False, allow_dashes=True, extra_filters=None,
-                      exclude_list=None):
+                      exclude_list=None, on_blank=False):
         """
         This allow you to populate a slug field. You need to call this function from model save. Only works if you add
         slug = models.SlugField(unique=True)
@@ -114,6 +114,7 @@ class TimeStampedModel(Model):
         :param allow_dashes:
         :param extra_filters:   this allow for unique together
         :param exclude_list:   exclude certain slugs
+        :param on_blank:   updates the slug if blank or null
         """
         if obj is None:
             obj = self.__class__
@@ -155,7 +156,7 @@ class TimeStampedModel(Model):
                             break
                 count += 1
             self.slug = slug
-        elif self.pk and on_edit:
+        elif self.pk and (on_edit or (on_blank and (self.slug is None or self.slug == ''))):
             main_slug = slugify(name)[:45]  # limits the slug to 45 chars as slug use 50
             if not allow_dashes:
                 main_slug = main_slug.replace('-', '_')

@@ -123,6 +123,9 @@ class TimeStampedModel(Model):
         if extra_filters is None:
             extra_filters = {}
 
+        if exclude_list is None:
+            exclude_list = []
+
         if name is None:
             name = getattr(self, 'name', '')  # Fallback to an empty string if 'name' attribute doesn't exist
 

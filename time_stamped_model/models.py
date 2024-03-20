@@ -97,24 +97,25 @@ class TimeStampedModel(Model):
         self.modified = modified_date
 
     def make_new_slug(self, obj=None, name=None, on_edit=False, allow_dashes=True, extra_filters=None,
-                      exclude_list=None, on_blank=False):
+                      exclude_list=None, on_blank=False, slug_field_name='slug'):
         """
-        This allow you to populate a slug field. You need to call this function from model save. Only works if you add
+        This allows you to populate a slug field. You need to call this function from model save. Only works if you add
         slug = models.SlugField(unique=True)
         on the model
 
-        the add
+        Then add
         def save(self, *args, **kwargs):
             self.make_new_slug()
             super().save(*args, **kwargs)
 
-        :param obj: The class name can be none and it will sort it self out
+        :param obj: The class name can be none, and it will sort itself out
         :param name: The field to make the slug from
-        :param on_edit
-        :param allow_dashes:
-        :param extra_filters:   this allow for unique together
-        :param exclude_list:   exclude certain slugs
-        :param on_blank:   updates the slug if blank or null
+        :param on_edit: Whether to update the slug on edit
+        :param allow_dashes: Whether dashes are allowed in the slug
+        :param extra_filters: This allows for unique together
+        :param exclude_list: Exclude certain slugs
+        :param on_blank: Updates the slug if blank or null
+        :param slug_field_name: The name of the slug field on the object
         """
         if obj is None:
             obj = self.__class__
@@ -123,10 +124,11 @@ class TimeStampedModel(Model):
             extra_filters = {}
 
         if name is None:
-            # noinspection PyUnresolvedReferences
-            name = self.name
+            name = getattr(self, 'name', '')  # Fallback to an empty string if 'name' attribute doesn't exist
 
-        if not self.pk and (self.slug is None or self.slug == ''):
+        current_slug = getattr(self, slug_field_name, '')
+
+        if not self.pk and (current_slug is None or current_slug == ''):
             main_slug = slugify(name)[:45]  # limits the slug to 45 chars as slug use 50
 
             if main_slug == '':
@@ -135,39 +137,50 @@ class TimeStampedModel(Model):
                 main_slug = main_slug.replace('-', '_')
             slug = main_slug
             count = 1
-            if exclude_list is not None:
-                while True:
-                    if slug in exclude_list:
-                        slug = f'{slug}{count}'
-                        count += 1
-                    else:
-                        break
 
-            while obj.objects.filter(slug=slug, **extra_filters).exists():
-                slug = slugify("%s %d" % (main_slug, count))
+            # This loop checks for existence in the database considering extra_filters
+            while obj.objects.filter(**{slug_field_name: slug}, **extra_filters).exists() or slug in exclude_list:
+                slug = f'{main_slug}{count}'
                 if not allow_dashes:
                     slug = slug.replace('-', '_')
-                if exclude_list is not None:
-                    while True:
-                        if slug in exclude_list:
-                            slug = f'{slug}{count}'
-                            count += 1
-                        else:
-                            break
                 count += 1
-            self.slug = slug
-        elif self.pk and (on_edit or (on_blank and (self.slug is None or self.slug == ''))):
-            main_slug = slugify(name)[:45]  # limits the slug to 45 chars as slug use 50
+
+                # Check and increment if slug is in exclude_list
+                while slug in exclude_list:
+                    slug = f'{main_slug}{count}'
+                    count += 1
+
+                # After adjusting for exclude_list, re-check for unique slug avoiding infinite loop
+                if not obj.objects.filter(**{slug_field_name: slug}, **extra_filters).exists():
+                    break
+
+            setattr(self, slug_field_name, slug)
+
+        elif self.pk and (on_edit or (on_blank and (current_slug is None or current_slug == ''))):
+            main_slug = slugify(name)[:45]
             if not allow_dashes:
                 main_slug = main_slug.replace('-', '_')
             slug = main_slug
             count = 1
-            while obj.objects.filter(slug=slug, **extra_filters).exclude(pk=self.pk).exists():
-                slug = slugify("%s %d" % (main_slug, count))
+
+            # Similar check for when on_edit or on_blank conditions are met
+            while obj.objects.filter(**{slug_field_name: slug}, **extra_filters).exclude(
+                    pk=self.pk).exists() or slug in exclude_list:
+                slug = f'{main_slug}{count}'
                 if not allow_dashes:
                     slug = slug.replace('-', '_')
                 count += 1
-            self.slug = slug
+
+                # Again, check and increment if slug is in exclude_list
+                while slug in exclude_list:
+                    slug = f'{main_slug}{count}'
+                    count += 1
+
+                # Check for unique slug after adjustments
+                if not obj.objects.filter(**{slug_field_name: slug}, **extra_filters).exclude(pk=self.pk).exists():
+                    break
+
+            setattr(self, slug_field_name, slug)
 
     def set_order_field(self, obj=None, extra_filters=None, order_field='order'):
         """

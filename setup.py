@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="time-stamped-model",
-    version="0.2.9",
+    version="0.2.10",
     author="Tom Turner",
     description="Django app to add created and modified",
     long_description=long_description,

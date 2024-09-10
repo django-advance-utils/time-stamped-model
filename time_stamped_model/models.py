@@ -226,7 +226,7 @@ class TimeStampedModel(Model):
                 order += 1
             setattr(self, order_field, order)
 
-    def set_instance_type(self, instance_type_field='instance_type'):
+    def set_instance_type(self, instance_type_field='instance_type', allow_multiple=False):
         """
         Sets the type of an instance for a Django model.
 
@@ -237,6 +237,7 @@ class TimeStampedModel(Model):
         Parameters:
         - instance_type_field (str): The field name in the model that will store the instance type.
           Defaults to 'instance_type'.
+        - allow_multiple (bool, optional): If set to True, it allows for multiple instances of different types.
 
         Usage:
         - Implement this method in the model's save method to automatically set the instance
@@ -256,6 +257,13 @@ class TimeStampedModel(Model):
           calling 'self.set_instance_type()' in Dog's save method would set 'instance_type' to 'dog'.
         """
         instance_type = getattr(self, instance_type_field)
+
         if instance_type is None:
             instance_type = self._meta.label_lower.split('.')[1]
             setattr(self, instance_type_field, instance_type)
+        elif allow_multiple:
+            instance_types = instance_type.split(';')
+            current_instance_type = self._meta.label_lower.split('.')[1]
+            if current_instance_type not in instance_types:
+                instance_types.append(current_instance_type)
+                setattr(self, instance_type_field, ';'.join(instance_types))

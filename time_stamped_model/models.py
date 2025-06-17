@@ -79,6 +79,7 @@ class TimeStampedModel(Model):
 
     class Meta:
         abstract = True
+        get_latest_by = 'created'
 
     def set_created_date(self, created_date):
         """
